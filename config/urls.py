@@ -3,9 +3,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('dogs/', include('dogs.urls', namespace='dogs'))
+    path('dogs/', include('dogs.urls', namespace='dogs')),
+    path('', include('library.urls', namespace='library')),
+
 ]
 
 if settings.DEBUG:
