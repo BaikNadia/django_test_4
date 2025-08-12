@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'dogs/base.html' %}
 {% load my_tags %}
 {% block content %}
 <div class="album py-5 bg-body-tertiary">
@@ -8,9 +8,9 @@
                      <div class="card shadow-sm">
                          <img src="{{ dog.photo|media_filter }}" class="card-img-top" alt="{{ dog.name }}">
                         <div class="card-body">
-                           <p class="card-text">Кличка: {{ dog.name }}</p>
-                            <p class="card-text">Порода: {{ dog.breed }}</p>
-                            <p class="card-text">Дата рождения: {{ dog.date_born }}</p>
+                           <p class="card-text">Кличка: {{ object.name }}</p>
+                            <p class="card-text">Порода: {{ object.breed }}</p>
+                            <p class="card-text">Дата рождения: {{ object.date_born }}</p>
                            <div class="d-flex justify-content-between align-items-center">
                               <div class="btn-group">
                                   <a class="btn btn-primary" href="{% url 'dogs:dogs_list' %}" role="button">Назад</a>
