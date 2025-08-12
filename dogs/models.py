@@ -42,7 +42,13 @@ class Dog(models.Model):
         verbose_name="Фото",
         help_text="Загрузите фото собаки",
     )
-    date_born = models.DateField(blank=True, null=True, verbose_name="", help_text="")
+    date_born = models.DateField(blank=True, null=True, verbose_name="", help_text="Введите дату рождения")
+
+    views_counter = models.PositiveIntegerField(
+        verbose_name="Счетчик просмотров",
+        help_text="Укажите количество просмотров",
+        default=0
+    )
 
     class Meta:
         verbose_name = "Собака"
