@@ -1,24 +1,38 @@
 {% extends 'dogs/base.html' %}
 {% block content %}
 <div class="container">
-  <div class="row">
-    <div class="col-6">
-      <form class="row" method="post" enctype="multipart/form-data">
-        <div class="card">
-          <div class="card-body">
-            {% csrf_token %}
-            {{ form.as_p }}
+    <form class="row" method="post" enctype="multipart/form-data">
+        <div class="col-6">
+          <div class="card">
+              {% if object %}
+              <p class="card-text">Редактирование собаки</p>
+              {% else %}
+              <p class="card-text">Создание собаки</p>
+              {% endif %}
+            <div class="card-body">
+              {% csrf_token %}
+              {{ form.as_p }}
+            </div>
+            <button type="submit" class="btn btn-primary">
+              {% if object %}
+              Сохранить
+              {% else %}
+              Создать
+              {% endif %}
+            </button>
           </div>
-          <button type="submit" class="btn btn-primary">
-            {% if object %}
-            Сохранить
-            {% else %}
-            Создать
-            {% endif %}
-          </button>
         </div>
-      </form>
-    </div>
-  </div>
+        <div class="col-6">
+          <div class="card">
+              <p class="card-text">Собака родитель</p>
+            <div class="card-body">
+              {{ formset.management_form }}
+              {% for form in formset.forms %}
+              {{ form.as_p }}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+    </form>
 </div>
 {% endblock %}
