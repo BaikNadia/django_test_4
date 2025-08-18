@@ -42,17 +42,57 @@ class Dog(models.Model):
         verbose_name="Фото",
         help_text="Загрузите фото собаки",
     )
-    date_born = models.DateField(blank=True, null=True, verbose_name="", help_text="Введите дату рождения")
+    date_born = models.DateField(
+        blank=True, null=True, verbose_name="", help_text="Введите дату рождения"
+    )
 
     views_counter = models.PositiveIntegerField(
         verbose_name="Счетчик просмотров",
         help_text="Укажите количество просмотров",
-        default=0
+        default=0,
     )
 
     class Meta:
         verbose_name = "Собака"
         verbose_name_plural = "Собаки"
+        ordering = ["breed", "name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Parent(models.Model):
+    dog = models.ForeignKey(
+        Dog,
+        related_name="parents",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Собака",
+    )
+    name = models.CharField(
+        max_length=100, verbose_name="Кличка", help_text="Введите кличку собаки"
+    )
+    breed = models.ForeignKey(
+        Breed,
+        on_delete=models.SET_NULL,
+        verbose_name="Порода",
+        help_text="Введите породу собаки",
+        null=True,
+        blank=True,
+        related_name="parent_dogs",
+    )
+    year_born = models.PositiveIntegerField(
+        verbose_name="Год рождения",
+        help_text="Укажите год рождения",
+        default=0,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        verbose_name = "Собака родитель"
+        verbose_name_plural = "Собаки родители"
         ordering = ["breed", "name"]
 
     def __str__(self):
