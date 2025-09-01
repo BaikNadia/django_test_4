@@ -1,5 +1,7 @@
-from django.views.generic import ListView, DetailView
-from django.views.generic import CreateView, UpdateView, DeleteView
+from django.http import HttpResponseForbidden
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
 from .models import Author, Book
 from .forms import AuthorForm, BookForm
@@ -23,6 +25,58 @@ class AuthorUpdateView(UpdateView):
     template_name = 'library/author_form.html'
     success_url = reverse_lazy('library:authors_list')
 
+# class ReviewBookView(LoginRequiredMixin, View):
+#     def post(self, request, book_id):
+#         book = get_object_or_404(Book, id=book_id)
+#
+#         if not request.user.has_perm('library.can_review_book'):
+#             return HttpResponseForbidden("У вас нет прав для рецензирования книги.")
+#
+#         # Логика рецензирования книги
+#         book.review = request.POST.get('review')
+#         book.save()
+#
+#         return redirect('library:book_detail', pk=book.id)
+class ReviewBookView(LoginRequiredMixin, View):
+    def post(self, request, pk):  # ✅ Изменили book_id → pk
+        book = get_object_or_404(Book, pk=pk)  # или id=pk
+
+        if not request.user.has_perm('library.can_review_book'):
+            return HttpResponseForbidden("У вас нет прав для рецензирования книги.")
+
+        review_text = request.POST.get('review', '').strip()
+        if review_text:
+            book.review = review_text
+            book.save()
+
+        return redirect('library:book_detail', pk=book.pk)
+
+
+# class RecommendBookView(LoginRequiredMixin, View):
+#     def post(self, request, book_id):
+#         book = get_object_or_404(Book, id=book_id)
+#
+#         if not request.user.has_perm('library.can_recommend_book'):
+#             return HttpResponseForbidden("У вас нет прав для рекомендации книги.")
+#
+#         # Логика рекомендации книги
+#         book.recommend = True
+#         book.save()
+#
+#         return redirect('library:book_detail', pk=book.id)
+class RecommendBookView(LoginRequiredMixin, View):
+    def post(self, request, pk):  # ✅ Изменили book_id → pk
+        book = get_object_or_404(Book, pk=pk)
+
+        if not request.user.has_perm('library.can_recommend_book'):
+            return HttpResponseForbidden("У вас нет прав для рекомендации книги.")
+
+        book.recommended = True
+        book.save()
+
+        return redirect('library:book_detail', pk=book.pk)
+
+
 class BooksListView(ListView):
     model = Book
     template_name = 'library/books_list.html'
@@ -34,7 +88,7 @@ class BooksListView(ListView):
         queryset = super().get_queryset()
         return queryset.filter(publication_date__year__gt=1800)
 
-class BookCreateView(CreateView):
+class BookCreateView(LoginRequiredMixin, CreateView):
     model = Book
     form_class = BookForm
     template_name = 'library/book_form.html'
@@ -54,13 +108,22 @@ class BookDetailView(DetailView):
         return context
 
 
-class BookUpdateView(UpdateView):
+class BookUpdateView(LoginRequiredMixin, UpdateView):
     model = Book
     fields = ['title', 'publication_date', 'author']
     template_name = 'library/book_form.html'
     success_url = reverse_lazy('library:books_list')
 
-class BookDeleteView(DeleteView):
+
+class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Book
     template_name = 'library/book_confirm_delete.html'
     success_url = reverse_lazy('library:books_list')
+
+    # Указываем, какое право нужно
+    permission_required = 'library.delete_book'
+
+    # Опционально: что делать, если нет прав
+    def handle_no_permission(self):
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(self.request.get_full_path(), self.get_login_url())
