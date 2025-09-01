@@ -3,12 +3,39 @@
 {% block title %}Детали книги{% endblock %}
 
 {% block content %}
-{% include 'library/header.html' %}
-<h2>{{ book.title }}</h2>
-<p>Автор: {{ book.author.first_name }} {{ book.author.last_name }}</p>
-<p>Дата публикации: {{ book.publication_date|date:"d M Y" }}</p>
-<p>Количество книг автора: {{ author_books_count }}</p>
-<a href="{% url 'library:book_update' book.pk %}" class="btn btn-secondary">Редактировать</a>
-<a href="{% url 'library:book_delete' book.pk %}" class="btn btn-danger">Удалить</a>
-<a href="{% url 'library:books_list' %}" class="btn btn-primary">Вернуться к списку</a>
+    <!-- Кнопка "Удалить" — только если есть право -->
+    {% if perms.library.delete_book %}
+        <a href="{% url 'library:book_delete' book.pk %}" class="btn btn-danger mb-3">Удалить книгу</a>
+    {% endif %}
+
+    {% include 'library/header.html' %}
+
+    <h2>{{ book.title }}</h2>
+    <p><strong>Автор:</strong> {{ book.author.first_name }} {{ book.author.last_name }}</p>
+    <p><strong>Дата публикации:</strong> {{ book.publication_date|date:"d M Y" }}</p>
+    <p><strong>Количество книг автора:</strong> {{ author_books_count }}</p>
+
+    <div class="mt-4">
+        <a href="{% url 'library:book_update' book.pk %}" class="btn btn-secondary">Редактировать</a>
+        {% if perms.library.delete_book %}
+            <a href="{% url 'library:book_delete' book.pk %}" class="btn btn-danger">Удалить</a>
+        {% endif %}
+        <a href="{% url 'library:books_list' %}" class="btn btn-primary">Вернуться к списку</a>
+    </div>
+
+{% if "library.can_review_book" in perms %}
+    <form action="{% url 'library:book_review' book.id %}" method="post">
+        {% csrf_token %}
+        <textarea name="review" placeholder="Напишите рецензию"></textarea>
+        <button type="submit">Рецензировать</button>
+    </form>
+{% endif %}
+
+{% if "library.can_recommend_book" in perms %}
+    <form action="{% url 'library:book_recommend' book.id %}" method="post">
+        {% csrf_token %}
+        <button type="submit">Рекомендовать</button>
+    </form>
+{% endif %}
+
 {% endblock %}
