@@ -1,6 +1,7 @@
 from django.http import HttpResponseForbidden
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.shortcuts import get_object_or_404, redirect
+from .services import BookService
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
 from .models import Author, Book
@@ -25,18 +26,7 @@ class AuthorUpdateView(UpdateView):
     template_name = 'library/author_form.html'
     success_url = reverse_lazy('library:authors_list')
 
-# class ReviewBookView(LoginRequiredMixin, View):
-#     def post(self, request, book_id):
-#         book = get_object_or_404(Book, id=book_id)
-#
-#         if not request.user.has_perm('library.can_review_book'):
-#             return HttpResponseForbidden("У вас нет прав для рецензирования книги.")
-#
-#         # Логика рецензирования книги
-#         book.review = request.POST.get('review')
-#         book.save()
-#
-#         return redirect('library:book_detail', pk=book.id)
+
 class ReviewBookView(LoginRequiredMixin, View):
     def post(self, request, pk):  # ✅ Изменили book_id → pk
         book = get_object_or_404(Book, pk=pk)  # или id=pk
@@ -52,18 +42,7 @@ class ReviewBookView(LoginRequiredMixin, View):
         return redirect('library:book_detail', pk=book.pk)
 
 
-# class RecommendBookView(LoginRequiredMixin, View):
-#     def post(self, request, book_id):
-#         book = get_object_or_404(Book, id=book_id)
-#
-#         if not request.user.has_perm('library.can_recommend_book'):
-#             return HttpResponseForbidden("У вас нет прав для рекомендации книги.")
-#
-#         # Логика рекомендации книги
-#         book.recommend = True
-#         book.save()
-#
-#         return redirect('library:book_detail', pk=book.id)
+
 class RecommendBookView(LoginRequiredMixin, View):
     def post(self, request, pk):  # ✅ Изменили book_id → pk
         book = get_object_or_404(Book, pk=pk)
@@ -103,8 +82,13 @@ class BookDetailView(DetailView):
 # и передайте это значение в контекст шаблона
 
     def get_context_data(self, **kwargs):
+        # Получаем стандартный контекст данных из родительского класса
         context = super().get_context_data(**kwargs)
-        context['author_books_count'] = Book.objects.filter(author=self.object.author).count()
+        # Получаем ID книги из объекта
+        book_id = self.object.id
+        # Добавляем в контекст средний рейтинг и статус популярности книги
+        context['average_rating'] = BookService.calculate_average_rating(book_id)
+        context['is_popular'] = BookService.is_popular(book_id)
         return context
 
 
