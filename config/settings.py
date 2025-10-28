@@ -1,6 +1,7 @@
 import os
 
-from django.conf.global_settings import LOGIN_URL
+# from django.conf.global_settings import STATIC_ROOT
+# from django.conf.global_settings import LOGIN_URL, CACHES
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -20,7 +21,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG=True if os.getenv('DEBUG') == "True" else False
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -119,11 +120,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STATICFILES_DIRS = [
-    # Здесь вы можете добавить пути к вашим статическим файлам,
-    # если они располагаются вне приложений
-    BASE_DIR / 'static'
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
 # Default primary key field type
@@ -146,11 +144,13 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# settings.py
-
-# После успешного входа перенаправлять на /books/
-LOGIN_REDIRECT_URL = '/books/'
-# или, лучше — по имени URL:
 LOGIN_REDIRECT_URL = 'library:books_list'
 LOGIN_URL = 'users:login'
 LOGOUT_REDIRECT_URL = '/books/'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://redis:6379/1',
+    }
+}
